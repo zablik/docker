@@ -1,0 +1,61 @@
+version: '3.0'
+
+services:
+
+  nginx:
+    image: nginx
+    environment:
+      - VIRTUAL_HOST=raceplace.dev
+    depends_on:
+      - php
+    volumes:
+      - ./nginx/conf.d/default.nginx:/etc/nginx/conf.d/default.conf
+      - ../../www/raceplace/:/var/www/raceplace
+    networks:
+      - frontend
+      - backend
+
+  php:
+    build:
+      context: ./php
+    volumes:
+      - ./php/php.ini:/usr/local/etc/php/php.ini
+      - ../../www/raceplace/:/var/www/raceplace
+    networks:
+      - backend
+    environment:
+      XDEBUG_CONFIG: "remote_host=host.docker.internal remote_enable=1 remote_port=9008"
+      PHP_IDE_CONFIG: "serverName=raceplace"
+
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    networks:
+      - backend
+
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      - VIRTUAL_HOST=raceplace-phpmyadmin.local
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+    networks:
+      - frontend
+      - backend
+
+
+networks:
+  frontend:
+    external:
+      name: proxy_proxy
+  backend:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.220.0/28
