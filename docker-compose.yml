@@ -33,9 +33,26 @@ services:
       - ./mysql/data:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+      - "33060:33060"
     networks:
       - backend
 
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: zablik
+      MONGO_INITDB_ROOT_PASSWORD: examplepass
+      MONGO_INITDB_DATABASE: raceplace
+    ports:
+      - 27017:27017 # Проброс портов для внешнего доступа
+    volumes:
+      - ./mongo/data:/data/db
+      - ./mongo/init.js:/docker-entrypoint-initdb.d/init.js:ro
+    networks:
+      - backend
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin:latest
